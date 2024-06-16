@@ -214,8 +214,8 @@ export default function Header({ children, onSearchChange }) {
                         setUser(null);
                         onClose();
                         router.push("/login");
-                        bg="#121212"
-                      }}>
+                      
+                      }} bg="#121212">
                         Log Out
                       </MenuItem>
                     </>
