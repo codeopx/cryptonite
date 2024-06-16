@@ -11,7 +11,7 @@ const ChatPage = () => {
   if (!receiverId) {
     return (
       <Header>
-        <div>Please select a user to chat with.</div>
+        <div>Please select a user to chat with.</div>cryptonite
       </Header>
     );
   }

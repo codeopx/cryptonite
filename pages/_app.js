@@ -22,6 +22,12 @@ const getTimeDifference = (date) => {
   }
 };
 
+const LoadingScene = () => (
+  <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+    <Text fontSize="xl" color="white">Loading...</Text>
+  </Box>
+);
+
 const App = () => {
   const { Parse, currentUser, addFollower } = useParse();
   const [posts, setPosts] = useState([]);
@@ -128,7 +134,7 @@ const App = () => {
       setUserId(currentUser.id);
       fetchPosts();
     }
-  }, [currentUser, userId]);
+  }, [currentUser, userId, fetchPosts]);
 
   useEffect(() => {
     if (userId) {
@@ -150,7 +156,7 @@ const App = () => {
 
       fetchData();
     }
-  }, [Parse, userId]);
+  }, [Parse, userId, fetchAuthorDetails, fetchPostCount]);
 
   if (loading) {
     return <LoadingScene />;
@@ -196,7 +202,7 @@ const App = () => {
             </Flex>
           </Stack>
         </Flex>
-        <Heading as="h3" size="md" mb={4} color="white">Author's Posts</Heading>
+        <Heading as="h3" size="md" mb={4} color="white">Author&apos;s Posts</Heading>
         <SimpleGrid columns={{ sm: 1, md: 2, lg: 3 }} spacing={8}>
           {posts.map(post => (
             <Post key={post.id} post={{...post, timeDifference: getTimeDifference(post.createdAt)}} onDelete={() => handleDelete(post.id)} currentUser={currentUser} />
