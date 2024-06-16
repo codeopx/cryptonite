@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, SimpleGrid, keyframes, useToast } from "@chakra-ui/react";
+import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, keyframes } from "@chakra-ui/react";
 import Post from '@/components/posts';
 import CreatePost from '@/components/createPost';
 import { ParseProvider, useParse } from '@/context/parseContext';
@@ -21,12 +21,6 @@ const getTimeDifference = (date) => {
     return postDate.format('MMM D, YYYY');
   }
 };
-
-const LoadingScene = () => (
-  <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-    <Text fontSize="xl" color="white">Loading...</Text>
-  </Box>
-);
 
 const App = () => {
   const { Parse, currentUser, addFollower } = useParse();
@@ -134,7 +128,7 @@ const App = () => {
       setUserId(currentUser.id);
       fetchPosts();
     }
-  }, [currentUser, userId, fetchPosts]);
+  }, [currentUser, userId]);
 
   useEffect(() => {
     if (userId) {
@@ -156,7 +150,7 @@ const App = () => {
 
       fetchData();
     }
-  }, [Parse, userId, fetchAuthorDetails, fetchPostCount]);
+  }, [Parse, userId]);
 
   if (loading) {
     return <LoadingScene />;
@@ -165,11 +159,6 @@ const App = () => {
   if (!authorDetails) {
     return <Text color="white">Author details not available.</Text>;
   }
-
-  const fadeIn = keyframes`
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  `;
 
   return (
     <Box p={6}>
@@ -202,12 +191,31 @@ const App = () => {
             </Flex>
           </Stack>
         </Flex>
-        <Heading as="h3" size="md" mb={4} color="white">Author&apos;s Posts</Heading>
+        <Heading as="h3" size="md" mb={4} color="white">Author's Posts</Heading>
         <SimpleGrid columns={{ sm: 1, md: 2, lg: 3 }} spacing={8}>
           {posts.map(post => (
             <Post key={post.id} post={{...post, timeDifference: getTimeDifference(post.createdAt)}} onDelete={() => handleDelete(post.id)} currentUser={currentUser} />
           ))}
         </SimpleGrid>
+
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Send a Message</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Input
+                placeholder="Type your message here..."
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="teal" mr={3} onClick={handleSendMessage}>Send</Button>
+              <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </Box>
   );

@@ -187,11 +187,11 @@ export default function Header({ children, onSearchChange }) {
                       My Wall
                     </Link>
                   </MenuItem>
-                  <MenuItem onClick={() => { onClose(); router.push('/news'); }} bg="#121212">
+                  {/* <MenuItem onClick={() => { onClose(); router.push('/news'); }} bg="#121212">
                     <Link as={NextLink} href="/news" _hover={{ textDecoration: "none", color: "white" }}>
                       News
                     </Link>
-                  </MenuItem>
+                  </MenuItem> */}
                   <MenuItem onClick={() => { onClose(); handleInboxClick(); }} bg="#121212">
                     <Link as={NextLink} href="/inbox" _hover={{ textDecoration: "none", color: "white" }}>
                       Inbox
@@ -243,11 +243,11 @@ export default function Header({ children, onSearchChange }) {
                       My Wall
                     </Link>
                   </Heading>
-                  <Heading size="md">
+                  {/* <Heading size="md">
                     <Link as={NextLink} href="/news" _hover={{ textDecoration: "none" }}>
                       News
                     </Link>
-                  </Heading>
+                  </Heading> */}
                   <Heading size="md">
                     <Link as={NextLink} href="/inbox" _hover={{ textDecoration: "none" }} onClick={handleInboxClick}>
                       Inbox
