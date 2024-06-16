@@ -20,7 +20,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  Spinner
+  Spinner,
+  Image
 } from "@chakra-ui/react";
 import { FiMenu, FiX, FiSearch } from 'react-icons/fi';
 import NextLink from "next/link";
@@ -131,6 +132,7 @@ export default function Header({ children, onSearchChange }) {
         <Container maxW="container.xl">
           <Flex align="center" justify="space-between" py={4} animation={`${fadeIn} 0.5s ease-in-out`}>
             <Flex align="center" flex="1">
+            <Image src="/clogo2.png" alt="Logo" boxSize="60px" mr={2} />
               <Heading as="h1" size="lg" letterSpacing={"tighter"} mr={8}>
                 <Link as={NextLink} href="/" _hover={{ textDecoration: "none" }}>
                   Cryptonite Network
