@@ -5,13 +5,23 @@ import { useParse } from './parseContext';
 
 const ChatContext = createContext();
 
+
+const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
+const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
+
+Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
+Parse.serverURL = "https://parseapi.back4app.com/";
+
+
 export const ChatProvider = ({ children }) => {
   const { currentUser } = useParse();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState(null);
 
   const sendMessage = async (receiverId, content) => {
-    if (!currentUser) throw new Error("User not authenticated");
+    if (!currentUser) {
+      throw new Error("User is not authenticated. Please log in.");
+    }
 
     const Message = Parse.Object.extend('Message');
     const message = new Message();
@@ -27,7 +37,7 @@ export const ChatProvider = ({ children }) => {
 
     try {
       await message.save();
-      fetchMessages(receiverId);  // Fetch updated messages after sending a new one
+      await fetchMessages(receiverId); // Fetch updated messages after sending a new one
     } catch (error) {
       console.error('Error while sending message:', error);
       throw error;
@@ -35,29 +45,25 @@ export const ChatProvider = ({ children }) => {
   };
 
   const fetchMessages = async (userId, receivedOnly = false) => {
-    const receiverQuery = new Parse.Query('Message');
-    receiverQuery.equalTo('receiver', currentUser);
-    if (receivedOnly) {
-      // Only fetch received messages
-      receiverQuery.ascending('sentAt');
-    } else {
-      // Fetch both sent and received messages
-      const senderQuery = new Parse.Query('Message');
-      senderQuery.equalTo('sender', currentUser);
-      senderQuery.equalTo('receiver', {
+    const query = new Parse.Query('Message');
+    query.equalTo('receiver', currentUser);
+    if (!receivedOnly) {
+      query.equalTo('sender', currentUser);
+      query.equalTo('receiver', {
         __type: 'Pointer',
         className: '_User',
         objectId: userId
       });
-      const mainQuery = Parse.Query.or(senderQuery, receiverQuery);
-      mainQuery.ascending('sentAt');
-      const results = await mainQuery.find();
+    }
+    query.ascending('sentAt');
+    try {
+      const results = await query.find();
       setMessages(results.map(message => message.toJSON()));
       return results.map(message => message.toJSON());
+    } catch (error) {
+      console.error('Error while fetching messages:', error);
+      throw error;
     }
-    const results = await receiverQuery.find();
-    setMessages(results.map(message => message.toJSON()));
-    return results.map(message => message.toJSON());
   };
 
   const deleteMessage = async (messageId) => {
