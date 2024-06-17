@@ -5,6 +5,15 @@ import { useParse } from '@/context/parseContext';
 import LoadingScene from './LoadingScene';
 import Post from '@/components/posts';
 
+
+
+const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
+const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
+
+Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
+Parse.serverURL = "https://parseapi.back4app.com/";
+
+
 const PostsList = ({ searchTerm }) => {
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);

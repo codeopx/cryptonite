@@ -6,6 +6,16 @@ import Post from '@/components/posts'; // Ensure the correct path to your Post c
 import Header from '@/components/header'; // Ensure the correct path to your Header component
 import moment from 'moment'; // Make sure to install moment if you haven't
 
+import Parse from 'parse/dist/parse';
+
+
+const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
+const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
+
+Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
+Parse.serverURL = "https://parseapi.back4app.com/";
+
+
 const queryUserPosts = async (Parse, userId) => {
   const Post = Parse.Object.extend('Post');
   const query = new Parse.Query(Post);
