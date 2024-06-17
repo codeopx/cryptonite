@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, keyframes } from "@chakra-ui/react";
+import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, SimpleGrid, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useToast } from "@chakra-ui/react";
 import Post from '@/components/posts';
 import CreatePost from '@/components/createPost';
 import { ParseProvider, useParse } from '@/context/parseContext';
@@ -31,6 +31,11 @@ const App = () => {
   const [userId, setUserId] = useState(currentUser ? currentUser.id : null);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const [messageContent, setMessageContent] = useState("");
+
+  const onClose = () => setIsOpen(false);
+  const onOpen = () => setIsOpen(true);
 
   const fetchPosts = async () => {
     const Post = Parse.Object.extend('Post');
@@ -128,7 +133,7 @@ const App = () => {
       setUserId(currentUser.id);
       fetchPosts();
     }
-  }, [currentUser, userId]);
+  }, [currentUser, userId, fetchPosts]);
 
   useEffect(() => {
     if (userId) {
@@ -150,10 +155,10 @@ const App = () => {
 
       fetchData();
     }
-  }, [Parse, userId]);
+  }, [userId, fetchAuthorDetails, fetchPostCount]);
 
   if (loading) {
-    return <LoadingScene />;
+    return <Text>Loading...</Text>;
   }
 
   if (!authorDetails) {
@@ -173,7 +178,7 @@ const App = () => {
         <Button onClick={() => setView('inbox')} colorScheme="purple">Inbox</Button>
       </Box>
       {view === 'chat' ? <Chat receiverId="RECEIVER_USER_ID" /> : <Inbox />} {/* Replace "RECEIVER_USER_ID" with the actual receiver's user ID */}
-      <Box p={4} borderWidth="0.2px" borderRadius="sm" bg="#121212" shadow="sm" animation={`${fadeIn} 0.5s ease-in-out`}>
+      <Box p={4} borderWidth="0.2px" borderRadius="sm" bg="#121212" shadow="sm">
         <Flex align="center" mb={4}>
           <Avatar size="xl" src={authorDetails?.avatar} />
           <Stack ml={4}>
