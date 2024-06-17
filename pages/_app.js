@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, SimpleGrid, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useToast } from "@chakra-ui/react";
 import Post from '@/components/posts';
 import CreatePost from '@/components/createPost';
@@ -37,15 +37,15 @@ const App = () => {
   const onClose = () => setIsOpen(false);
   const onOpen = () => setIsOpen(true);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     const Post = Parse.Object.extend('Post');
     const query = new Parse.Query(Post);
     query.include('author');
     const results = await query.find();
     setPosts(results.map(post => post.toJSON()));
-  };
+  }, [Parse]);
 
-  const fetchAuthorDetails = async (authorId) => {
+  const fetchAuthorDetails = useCallback(async (authorId) => {
     const query = new Parse.Query(Parse.User);
     try {
       const author = await query.get(authorId);
@@ -62,9 +62,9 @@ const App = () => {
       console.error('Error while fetching author details:', error);
       return null;
     }
-  };
+  }, [Parse]);
 
-  const fetchPostCount = async (authorId) => {
+  const fetchPostCount = useCallback(async (authorId) => {
     const Post = Parse.Object.extend('Post');
     const query = new Parse.Query(Post);
     const author = new Parse.User();
@@ -77,7 +77,7 @@ const App = () => {
       console.error('Error while fetching post count:', error);
       return 0;
     }
-  };
+  }, [Parse]);
 
   const handleDelete = async (postId) => {
     const Post = Parse.Object.extend('Post');
@@ -126,7 +126,7 @@ const App = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [Parse]);
+  }, [fetchPosts]);
 
   useEffect(() => {
     if (currentUser && currentUser.id !== userId) {
