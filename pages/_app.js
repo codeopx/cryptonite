@@ -23,6 +23,15 @@ const getTimeDifference = (date) => {
 };
 
 const App = () => {
+  useEffect(() => {
+    // Initialize Parse only once
+    if (!Parse.applicationId) {
+      Parse.initialize(process.env.NEXT_PUBLIC_PARSE_APP_ID, process.env.NEXT_PUBLIC_PARSE_JS_KEY);
+      Parse.serverURL = process.env.NEXT_PUBLIC_PARSE_SERVER_URL;
+    }
+  }, []);
+
+
   const { Parse, currentUser, addFollower } = useParse();
   const [posts, setPosts] = useState([]);
   const [authorDetails, setAuthorDetails] = useState(null);

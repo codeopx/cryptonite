@@ -1,117 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
+import Parse from 'parse/dist/parse.min.js';
 import { Box, SimpleGrid, useToast, Heading, keyframes, Avatar, Text, Button, Stack, Flex } from "@chakra-ui/react";
 import { useParse } from '@/context/parseContext';
 import LoadingScene from './LoadingScene';
 import Post from '@/components/posts';
-
-const queryUserPosts = async (Parse, userId) => {
-  const Post = Parse.Object.extend('Post');
-  const query = new Parse.Query(Post);
-  const user = new Parse.User();
-  user.id = userId;
-  query.equalTo('author', user);
-  query.include('author');
-  query.descending('createdAt');
-  try {
-    const results = await query.find();
-    return results.map(result => ({
-      id: result.id,
-      content: result.get('content'),
-      imageUrls: result.get('imageUrls'),
-      videoUrls: result.get('videoUrls'),
-      link: result.get('link'),
-      author: {
-        id: result.get('author').id,
-        name: result.get('author').get('username'),
-        avatar: result.get('author').get('avatarUrl')
-      },
-      likesCount: result.get('likesCount') || 0,
-      commentsCount: result.get('commentsCount') || 0,
-      viewsCount: result.get('viewsCount') || 0,
-      createdAt: result.get('createdAt'),
-    }));
-  } catch (error) {
-    console.error('Error while fetching posts:', error);
-    return [];
-  }
-};
-
-const fetchAuthorDetails = async (Parse, userId) => {
-  const query = new Parse.Query(Parse.User);
-  try {
-    const user = await query.get(userId);
-    const followers = user.get('followers') || [];
-    return {
-      id: user.id,
-      username: user.get('username'),
-      avatar: user.get('avatarUrl'),
-      bio: user.get('bio'),
-      followersCount: followers.length,
-      following: user.get('following') || [],
-    };
-  } catch (error) {
-    console.error('Error while fetching user details:', error);
-    return null;
-  }
-};
-
-const fetchPostCount = async (Parse, userId) => {
-  const Post = Parse.Object.extend('Post');
-  const query = new Parse.Query(Post);
-  const user = new Parse.User();
-  user.id = userId;
-  query.equalTo('author', user);
-  try {
-    const count = await query.count();
-    return count;
-  } catch (error) {
-    console.error('Error while fetching post count:', error);
-    return 0;
-  }
-};
-
-const fetchUserTotalViews = async (Parse, userId) => {
-  const Post = Parse.Object.extend('Post');
-  const query = new Parse.Query(Post);
-  const user = new Parse.User();
-  user.id = userId;
-  query.equalTo('author', user);
-
-  try {
-    const posts = await query.find();
-    const totalViews = posts.reduce((sum, post) => sum + (post.get('viewsCount') || 0), 0);
-    return totalViews;
-  } catch (error) {
-    console.error("Error fetching user total views:", error);
-    return 0;
-  }
-};
-
-const fetchUserRank = async (Parse, userId) => {
-  const userQuery = new Parse.Query(Parse.User);
-  const allUsers = await userQuery.find();
-  const userViews = await Promise.all(allUsers.map(async user => {
-    const totalViews = await fetchUserTotalViews(Parse, user.id);
-    return { userId: user.id, totalViews };
-  }));
-  userViews.sort((a, b) => b.totalViews - a.totalViews);
-  const userRank = userViews.findIndex(user => user.userId === userId) + 1;
-  const userTotalViews = userViews.find(user => user.userId === userId)?.totalViews || 0;
-  return { rank: userRank, totalViews: userTotalViews };
-};
-
-const deletePost = async (Parse, postId) => {
-  const Post = Parse.Object.extend('Post');
-  const query = new Parse.Query(Post);
-  try {
-    const post = await query.get(postId);
-    await post.destroy();
-    return true;
-  } catch (error) {
-    console.error('Error while deleting post:', error);
-    return false;
-  }
-};
 
 const PostsList = ({ searchTerm }) => {
   const [posts, setPosts] = useState([]);
@@ -123,27 +15,27 @@ const PostsList = ({ searchTerm }) => {
   const { Parse, currentUser, addFollower } = useParse();
   const toast = useToast();
 
-  const fetchData = useCallback(async () => {
-    if (currentUser) {
-      setLoading(true);
-      const [postsData, authorData, count, rankData] = await Promise.all([
-        queryUserPosts(Parse, currentUser.id),
-        fetchAuthorDetails(Parse, currentUser.id),
-        fetchPostCount(Parse, currentUser.id),
-        fetchUserRank(Parse, currentUser.id)
-      ]);
-      setPosts(postsData);
-      setFilteredPosts(postsData);
-      setAuthorDetails(authorData);
-      setPostCount(count);
-      setUserRank(rankData);
-      setLoading(false);
-    }
-  }, [Parse, currentUser]);
-
   useEffect(() => {
+    const fetchData = async () => {
+      if (currentUser) {
+        setLoading(true);
+        const [postsData, authorData, count, rankData] = await Promise.all([
+          queryUserPosts(Parse, currentUser.id),
+          fetchAuthorDetails(Parse, currentUser.id),
+          fetchPostCount(Parse, currentUser.id),
+          fetchUserRank(Parse, currentUser.id)
+        ]);
+        setPosts(postsData);
+        setFilteredPosts(postsData);
+        setAuthorDetails(authorData);
+        setPostCount(count);
+        setUserRank(rankData);
+        setLoading(false);
+      }
+    };
+
     fetchData();
-  }, [fetchData]);
+  }, [Parse, currentUser]);
 
   useEffect(() => {
     const currentUser = Parse.User.current();
@@ -258,3 +150,4 @@ const PostsList = ({ searchTerm }) => {
 };
 
 export default PostsList;
+
