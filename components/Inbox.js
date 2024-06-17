@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Box, Heading, VStack, Text, Flex, Avatar, IconButton, Spinner, useToast } from "@chakra-ui/react";
 import { FiMessageSquare } from "react-icons/fi";
 import { useRouter } from "next/router";
@@ -13,7 +13,7 @@ const Inbox = () => {
   const toast = useToast();
   const router = useRouter();
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const fetchedMessages = await fetchMessages(currentUser.id, true);
       const sortedMessages = fetchedMessages.sort((a, b) => new Date(b.sentAt.iso) - new Date(a.sentAt.iso));
@@ -23,13 +23,13 @@ const Inbox = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser.id, fetchMessages]);
 
   useEffect(() => {
     if (currentUser) {
       loadMessages();
     }
-  }, [currentUser]);
+  }, [currentUser, loadMessages]);
 
   useEffect(() => {
     if (newMessage && !messages.some((msg) => msg.objectId === newMessage.objectId)) {
