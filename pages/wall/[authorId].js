@@ -201,7 +201,7 @@ const AuthorPosts = () => {
       localStorage.setItem('hasRefreshed', 'true');
       window.location.reload();
     }
-  }, [currentUser]);
+  }, [Parse.User]);
 
   const handleFollow = async () => {
     if (!currentUser) {
@@ -368,5 +368,4 @@ const AuthorPosts = () => {
 };
 
 export default AuthorPosts;
-
 
