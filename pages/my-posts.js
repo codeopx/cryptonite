@@ -81,7 +81,7 @@ const MyPosts = () => {
       localStorage.setItem('hasRefreshed', 'true');
       window.location.reload();
     }
-  }, []);
+  }, [Parse.User]);
 
   const getTimeDifference = (timestamp) => {
     const now = moment();
