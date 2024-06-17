@@ -25,7 +25,7 @@ import {
 } from "@chakra-ui/react";
 import { FiMenu, FiX, FiSearch } from 'react-icons/fi';
 import NextLink from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from 'next/router';
 import { useParse } from "@/context/parseContext";
 import { keyframes } from '@emotion/react';
@@ -48,18 +48,18 @@ export default function Header({ children, onSearchChange }) {
     }
   }, [Parse]);
 
-  const handleRouteChange = (url) => {
+  const handleRouteChange = useCallback((url) => {
     if (url === '/wall') {
       router.reload();
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     router.events.on('routeChangeComplete', handleRouteChange);
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
-  }, [router]);
+  }, [router, handleRouteChange]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -132,7 +132,7 @@ export default function Header({ children, onSearchChange }) {
         <Container maxW="container.xl">
           <Flex align="center" justify="space-between" py={4} animation={`${fadeIn} 0.5s ease-in-out`}>
             <Flex align="center" flex="1">
-            <Image src="/clogo2.png" alt="Logo" boxSize="60px" mr={2} />
+              <Image src="/clogo2.png" alt="Logo" boxSize="60px" mr={2} />
               <Heading as="h1" size="lg" letterSpacing={"tighter"} mr={8}>
                 <Link as={NextLink} href="/" _hover={{ textDecoration: "none" }}>
                   Cryptonite Network
