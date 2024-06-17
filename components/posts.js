@@ -1,9 +1,50 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Flex, Text, Image, IconButton, Stack, Link, keyframes, useDisclosure, Button, Input, Grid, useColorModeValue, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Menu, MenuButton, MenuList, MenuItem } from "@chakra-ui/react";
-import { FaHeart, FaRegHeart, FaCommentDots, FaTrashAlt, FaShareAlt, FaEye, FaEllipsisV, FaChartBar } from "react-icons/fa";
+import {
+  Box,
+  Flex,
+  Text,
+  Image,
+  IconButton,
+  Stack,
+  Link,
+  keyframes,
+  useDisclosure,
+  Button,
+  Input,
+  Grid,
+  useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem
+} from "@chakra-ui/react";
+import {
+  FaHeart,
+  FaRegHeart,
+  FaCommentDots,
+  FaTrashAlt,
+  FaShareAlt,
+  FaEye,
+  FaEllipsisV,
+  FaChartBar
+} from "react-icons/fa";
 import { MdDelete, MdReply } from "react-icons/md";
 import NextLink from 'next/link';
-import { AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay } from "@chakra-ui/react";
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay
+} from "@chakra-ui/react";
 import { useParse } from "@/context/parseContext";
 import moment from 'moment';
 
@@ -27,6 +68,8 @@ const Post = ({ post, onDelete, currentUser }) => {
 
   // Use hooks at the top level of the component
   const commentBgColor = useColorModeValue("#1a1a1a", "#1a1a1a");
+  const commentTextColor = useColorModeValue("gray.500", "gray.500");
+  const replyTextColor = useColorModeValue("white", "white");
 
   useEffect(() => {
     const fetchLikesAndComments = async () => {
@@ -438,7 +481,7 @@ const Post = ({ post, onDelete, currentUser }) => {
                   <Box>
                     <Text fontWeight="bold">{comment.name}</Text>
                     <Text>{comment.content}</Text>
-                    <Text fontSize="xs" color="gray.500">{getTimeDifference(comment.createdAt)}</Text>
+                    <Text fontSize="xs" color={commentTextColor}>{getTimeDifference(comment.createdAt)}</Text>
                   </Box>
                 </Flex>
                 <Flex alignItems="center">
@@ -477,7 +520,7 @@ const Post = ({ post, onDelete, currentUser }) => {
                       <Box>
                         <Text fontWeight="bold">{reply.name}</Text>
                         <Text>{reply.content}</Text>
-                        <Text fontSize="xs" color="white">{getTimeDifference(reply.createdAt)}</Text>
+                        <Text fontSize="xs" color={replyTextColor}>{getTimeDifference(reply.createdAt)}</Text>
                       </Box>
                     </Flex>
                     {currentUser && currentUser.id === reply.id && (
