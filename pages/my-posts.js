@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Box, SimpleGrid, useToast, Heading, keyframes } from "@chakra-ui/react";
 import { useParse } from '@/context/parseContext';
 import LoadingScene from '@/components/LoadingScene'; // Ensure the correct path to your LoadingScene component
@@ -61,18 +61,18 @@ const MyPosts = () => {
     to { opacity: 1; transform: translateY(0); }
   `;
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (currentUser) {
-        setLoading(true);
-        const postsData = await queryUserPosts(Parse, currentUser.id);
-        setPosts(postsData);
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
+  const fetchPosts = useCallback(async () => {
+    if (currentUser) {
+      setLoading(true);
+      const postsData = await queryUserPosts(Parse, currentUser.id);
+      setPosts(postsData);
+      setLoading(false);
+    }
   }, [Parse, currentUser]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   useEffect(() => {
     const currentUser = Parse.User.current();
@@ -81,7 +81,7 @@ const MyPosts = () => {
       localStorage.setItem('hasRefreshed', 'true');
       window.location.reload();
     }
-  }, [currentUser]);
+  }, []);
 
   const getTimeDifference = (timestamp) => {
     const now = moment();
