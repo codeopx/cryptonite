@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Box, SimpleGrid, useToast, Heading, keyframes, Avatar, Text, Button, Stack, Flex } from "@chakra-ui/react";
 import { useParse } from '@/context/parseContext';
 import LoadingScene from './LoadingScene';
@@ -123,32 +123,27 @@ const PostsList = ({ searchTerm }) => {
   const { Parse, currentUser, addFollower } = useParse();
   const toast = useToast();
 
-  const fadeIn = keyframes`
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  `;
+  const fetchData = useCallback(async () => {
+    if (currentUser) {
+      setLoading(true);
+      const [postsData, authorData, count, rankData] = await Promise.all([
+        queryUserPosts(Parse, currentUser.id),
+        fetchAuthorDetails(Parse, currentUser.id),
+        fetchPostCount(Parse, currentUser.id),
+        fetchUserRank(Parse, currentUser.id)
+      ]);
+      setPosts(postsData);
+      setFilteredPosts(postsData);
+      setAuthorDetails(authorData);
+      setPostCount(count);
+      setUserRank(rankData);
+      setLoading(false);
+    }
+  }, [Parse, currentUser]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (currentUser) {
-        setLoading(true);
-        const [postsData, authorData, count, rankData] = await Promise.all([
-          queryUserPosts(Parse, currentUser.id),
-          fetchAuthorDetails(Parse, currentUser.id),
-          fetchPostCount(Parse, currentUser.id),
-          fetchUserRank(Parse, currentUser.id)
-        ]);
-        setPosts(postsData);
-        setFilteredPosts(postsData);
-        setAuthorDetails(authorData);
-        setPostCount(count);
-        setUserRank(rankData);
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [Parse, currentUser]);
+  }, [fetchData]);
 
   useEffect(() => {
     const currentUser = Parse.User.current();
@@ -156,7 +151,7 @@ const PostsList = ({ searchTerm }) => {
       localStorage.setItem('hasRefreshed', 'true');
       window.location.reload();
     }
-  }, [currentUser]);
+  }, [Parse.User]);
 
   useEffect(() => {
     if (!searchTerm) {
