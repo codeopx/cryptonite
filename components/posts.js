@@ -25,6 +25,9 @@ const Post = ({ post, onDelete, currentUser }) => {
     onClose: onCommentsClose
   } = useDisclosure();
 
+  // Use hooks at the top level of the component
+  const commentBgColor = useColorModeValue("#1a1a1a", "#1a1a1a");
+
   useEffect(() => {
     const fetchLikesAndComments = async () => {
       try {
@@ -420,7 +423,7 @@ const Post = ({ post, onDelete, currentUser }) => {
             <Button onClick={() => handleAddComment()} colorScheme="purple">Comment</Button>
           </Flex>
           {comments.map((comment, index) => (
-            <Box key={index} mt={4} p={2} bg={useColorModeValue("#1a1a1a", "#1a1a1a")} borderRadius="md" animation={`${fadeIn} 0.5s ease-in-out`}>
+            <Box key={index} mt={4} p={2} bg={commentBgColor} borderRadius="md" animation={`${fadeIn} 0.5s ease-in-out`}>
               <Flex alignItems="center" justifyContent="space-between">
                 <Flex alignItems="center">
                   {comment.avatar && (
@@ -459,7 +462,7 @@ const Post = ({ post, onDelete, currentUser }) => {
                 </Flex>
               </Flex>
               {comment.replies && comment.replies.map((reply, replyIndex) => (
-                <Box key={replyIndex} mt={4} ml={8} p={2} bg={useColorModeValue("#1a1a1a", "#1a1a1a")} borderRadius="md" animation={`${fadeIn} 0.5s ease-in-out`}>
+                <Box key={replyIndex} mt={4} ml={8} p={2} bg={commentBgColor} borderRadius="md" animation={`${fadeIn} 0.5s ease-in-out`}>
                   <Flex alignItems="center" justifyContent="space-between">
                     <Flex alignItems="center">
                       {reply.avatar && (
