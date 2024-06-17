@@ -14,6 +14,7 @@ const Inbox = () => {
   const router = useRouter();
 
   const loadMessages = useCallback(async () => {
+    if (!currentUser) return;  // Ensure currentUser is defined
     try {
       const fetchedMessages = await fetchMessages(currentUser.id, true);
       const sortedMessages = fetchedMessages.sort((a, b) => new Date(b.sentAt.iso) - new Date(a.sentAt.iso));
@@ -23,7 +24,7 @@ const Inbox = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser.id, fetchMessages]);
+  }, [currentUser, fetchMessages]);
 
   useEffect(() => {
     if (currentUser) {
@@ -72,10 +73,14 @@ const Inbox = () => {
   return (
     <Box p={6} maxW="lg" mx="auto" bg="#121212" color="white">
       <Flex align="center" mb={4}>
-        <Avatar size="lg" src={currentUser.get("avatarUrl")} />
-        <VStack align="start" ml={4} spacing={0}>
-          <Heading size="md" color="purple.400">{currentUser.get("username")}</Heading>
-        </VStack>
+        {currentUser && (
+          <>
+            <Avatar size="lg" src={currentUser.get("avatarUrl")} />
+            <VStack align="start" ml={4} spacing={0}>
+              <Heading size="md" color="purple.400">{currentUser.get("username")}</Heading>
+            </VStack>
+          </>
+        )}
       </Flex>
       <Heading size="md" mb={4}>Inbox ({messages.length} messages)</Heading>
       <VStack spacing={4} align="stretch">
