@@ -114,4 +114,3 @@ const News = ({ isGrid = true }) => {
 };
 
 export default News;
-
