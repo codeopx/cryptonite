@@ -1,5 +1,5 @@
 // components/Chat.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Input, IconButton, VStack, Text, Flex, Avatar, HStack, Spinner, useToast } from "@chakra-ui/react";
 import { motion } from 'framer-motion';
 import { useChat } from '@/context/chatContext';
@@ -18,16 +18,16 @@ const Chat = ({ receiverId }) => {
   const [deletingMessageId, setDeletingMessageId] = useState(null);
   const toast = useToast();
 
-  useEffect(() => {
-    fetchMessages(receiverId);
-    fetchReceiverDetails(receiverId);
-  }, [receiverId]);
-
-  const fetchReceiverDetails = async (userId) => {
+  const fetchReceiverDetails = useCallback(async (userId) => {
     const query = new Parse.Query(Parse.User);
     const user = await query.get(userId);
     setReceiver(user.toJSON());
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchMessages(receiverId);
+    fetchReceiverDetails(receiverId);
+  }, [receiverId, fetchMessages, fetchReceiverDetails]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
