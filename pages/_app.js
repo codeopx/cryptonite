@@ -9,15 +9,6 @@ import Inbox from '@/components/Inbox';
 import Header from '@/components/header';
 import Link from 'next/link';
 import moment from 'moment';
-import Parse from '../parseConfig';
-
-
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
-
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
-
 
 const getTimeDifference = (date) => {
   const now = moment();
@@ -30,6 +21,29 @@ const getTimeDifference = (date) => {
     return postDate.format('MMM D, YYYY');
   }
 };
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by ErrorBoundary: ", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
 
 const App = () => {
   const { Parse, currentUser, addFollower } = useParse();
@@ -248,7 +262,9 @@ const MyApp = ({ Component, pageProps }) => {
     <ChakraProvider>
       <ParseProvider>
         <ChatProvider>
-          <Component {...pageProps} />
+          <ErrorBoundary>
+            <Component {...pageProps} />
+          </ErrorBoundary>
         </ChatProvider>
       </ParseProvider>
     </ChakraProvider>
