@@ -1,17 +1,8 @@
-// context/chatContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
-import Parse from 'parse/dist/parse';
+import Parse from '../parseConfig';
 import { useParse } from './parseContext';
 
 const ChatContext = createContext();
-
-
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
-
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
-
 
 export const ChatProvider = ({ children }) => {
   const { currentUser } = useParse();

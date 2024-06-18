@@ -6,7 +6,9 @@ import Post from '@/components/posts'; // Ensure the correct path to your Post c
 import Header from '@/components/header'; // Ensure the correct path to your Header component
 import moment from 'moment'; // Make sure to install moment if you haven't
 
-import Parse from 'parse/dist/parse';
+
+
+import Parse from '../parseConfig';
 
 
 const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;

@@ -19,7 +19,7 @@ import { FaCog } from "react-icons/fa";
 import { useParse } from "@/context/parseContext";
 import Header from "@/components/header";
 
-import Parse from 'parse/dist/parse';
+import Parse from "../parseConfig";
 
 
 const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;

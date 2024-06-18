@@ -1,13 +1,10 @@
-// components/Chat.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Input, IconButton, VStack, Text, Flex, Avatar, HStack, Spinner, useToast } from "@chakra-ui/react";
 import { motion } from 'framer-motion';
 import { useChat } from '@/context/chatContext';
 import { useParse } from '@/context/parseContext';
 import { FaPaperPlane, FaTrash } from 'react-icons/fa';
-import Parse from 'parse/dist/parse';
-
-
+import Parse from '../parseConfig';
 
 const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
 const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
@@ -15,16 +12,16 @@ const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
 Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
 Parse.serverURL = "https://parseapi.back4app.com/";
 
-
 const MotionBox = motion(Box);
 
 const Chat = ({ receiverId }) => {
-  const { messages, sendMessage, fetchMessages, deleteMessage } = useChat();
+  const { messages, sendMessage, fetchMessages, deleteMessage, newMessage } = useChat();
   const { currentUser } = useParse();
   const [content, setContent] = useState('');
   const [receiver, setReceiver] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState(null);
+  const [localMessages, setLocalMessages] = useState([]);
   const toast = useToast();
 
   const fetchReceiverDetails = useCallback(async (userId) => {
@@ -34,9 +31,29 @@ const Chat = ({ receiverId }) => {
   }, []);
 
   useEffect(() => {
-    fetchMessages(receiverId);
-    fetchReceiverDetails(receiverId);
+    const loadMessages = async () => {
+      const fetchedMessages = await fetchMessages(receiverId);
+      setLocalMessages(fetchedMessages);
+    };
+
+    if (receiverId) {
+      loadMessages();
+      fetchReceiverDetails(receiverId);
+    }
   }, [receiverId, fetchMessages, fetchReceiverDetails]);
+
+  useEffect(() => {
+    if (newMessage && !localMessages.some((msg) => msg.objectId === newMessage.objectId)) {
+      setLocalMessages((prevMessages) => [newMessage, ...prevMessages]);
+      toast({
+        title: "New Message.",
+        description: `You have received a new message from ${newMessage.sender.username}.`,
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  }, [newMessage, toast, localMessages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -45,6 +62,8 @@ const Chat = ({ receiverId }) => {
     await sendMessage(receiverId, content);
     setContent('');
     setIsSending(false);
+    const fetchedMessages = await fetchMessages(receiverId);
+    setLocalMessages(fetchedMessages);
   };
 
   const handleDeleteMessage = async (messageId) => {
@@ -52,7 +71,8 @@ const Chat = ({ receiverId }) => {
       setDeletingMessageId(messageId);
       setTimeout(async () => {
         await deleteMessage(messageId);
-        fetchMessages(receiverId);
+        const fetchedMessages = await fetchMessages(receiverId);
+        setLocalMessages(fetchedMessages);
         toast({
           title: "Message Deleted.",
           description: "Your message has been deleted.",
@@ -97,7 +117,7 @@ const Chat = ({ receiverId }) => {
       )}
       <VStack spacing={4} align="stretch">
         <Box border="1px" borderColor="white" borderRadius="md" p={4} maxHeight="400px" overflowY="auto" bg="#121212" shadow="md">
-          {messages.map((message) => (
+          {localMessages.map((message) => (
             <MotionBox
               key={message.objectId}
               initial="hidden"

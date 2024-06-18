@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Parse from 'parse/dist/parse.min.js';
 import { Box, SimpleGrid, useToast, Heading, keyframes, Avatar, Text, Button, Stack, Flex } from "@chakra-ui/react";
 import { useParse } from '@/context/parseContext';
 import LoadingScene from './LoadingScene';
 import Post from '@/components/posts';
-
-
+import Parse from '../parseConfig';
 
 const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
 const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
@@ -13,6 +11,84 @@ const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
 Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
 Parse.serverURL = "https://parseapi.back4app.com/";
 
+const queryUserPosts = async (Parse, userId) => {
+  const Post = Parse.Object.extend('Post');
+  const query = new Parse.Query(Post);
+  const user = new Parse.User();
+  user.id = userId;
+  query.equalTo('author', user);
+  query.descending('createdAt');
+
+  try {
+    const posts = await query.find();
+    return posts.map(post => ({
+      id: post.id,
+      content: post.get('content'),
+      author: {
+        id: post.get('author').id,
+        name: post.get('author').get('username'),
+        avatar: post.get('author').get('avatarUrl')
+      },
+      viewsCount: post.get('viewsCount'),
+      createdAt: post.get('createdAt')
+    }));
+  } catch (error) {
+    console.error("Error querying user posts:", error);
+    return [];
+  }
+};
+
+const fetchAuthorDetails = async (Parse, userId) => {
+  const query = new Parse.Query(Parse.User);
+  try {
+    const user = await query.get(userId);
+    return {
+      id: user.id,
+      username: user.get('username'),
+      avatar: user.get('avatarUrl'),
+      bio: user.get('bio'),
+      followersCount: user.get('followersCount') || 0
+    };
+  } catch (error) {
+    console.error("Error fetching author details:", error);
+    return null;
+  }
+};
+
+const fetchPostCount = async (Parse, userId) => {
+  const Post = Parse.Object.extend('Post');
+  const query = new Parse.Query(Post);
+  const user = new Parse.User();
+  user.id = userId;
+  query.equalTo('author', user);
+
+  try {
+    const count = await query.count();
+    return count;
+  } catch (error) {
+    console.error("Error fetching post count:", error);
+    return 0;
+  }
+};
+
+const fetchUserRank = async (Parse, userId) => {
+  // Implement your logic to fetch user rank
+  return { rank: 1, totalViews: 1000 }; // Placeholder
+};
+
+const deletePost = async (Parse, postId) => {
+  const Post = Parse.Object.extend('Post');
+  const query = new Parse.Query(Post);
+
+  try {
+    const post = await query.get(postId);
+    await post.destroy();
+    return true;
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    return false;
+  }
+};
 
 const PostsList = ({ searchTerm }) => {
   const [posts, setPosts] = useState([]);
@@ -23,6 +99,11 @@ const PostsList = ({ searchTerm }) => {
   const [loading, setLoading] = useState(true);
   const { Parse, currentUser, addFollower } = useParse();
   const toast = useToast();
+
+  const fadeIn = keyframes`
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  `;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,4 +240,3 @@ const PostsList = ({ searchTerm }) => {
 };
 
 export default PostsList;
-
