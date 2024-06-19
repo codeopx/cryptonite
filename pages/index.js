@@ -58,13 +58,12 @@ const fetchAuthorDetails = async (Parse, authorId) => {
   const query = new Parse.Query(Parse.User);
   try {
     const author = await query.get(authorId);
-    const followers = author.get('followers') || [];
     return {
       id: author.id,
       username: author.get('username'),
       avatar: author.get('avatarUrl'),
       bio: author.get('bio'),
-      followersCount: author.get('followersCount') || followers.length,
+      followersCount: author.get('followersCount') || 0,
       following: author.get('following') || [],
     };
   } catch (error) {
