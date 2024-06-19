@@ -19,7 +19,6 @@ import { useParse } from "@/context/parseContext";
 import Header from '@/components/header';
 import Post from "@/components/posts"; // Adjust the import path as needed
 import CreatePost from "@/components/createPost";
-
 import moment from 'moment'; // Make sure to install moment if you haven't
 import NextLink from "next/link";
 import RankPage from "./rank";
