@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Input, IconButton, VStack, Text, Flex, Avatar, HStack, Spinner, useToast } from "@chakra-ui/react";
 import { motion } from 'framer-motion';
 import { useChat } from '@/context/chatContext';
@@ -6,45 +6,47 @@ import { useParse } from '@/context/parseContext';
 import { FaPaperPlane, FaTrash } from 'react-icons/fa';
 import Parse from '../parseConfig';
 
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
-
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
-
 const MotionBox = motion(Box);
 
 const Chat = ({ receiverId }) => {
-  const { messages, sendMessage, fetchMessages, deleteMessage, newMessage } = useChat();
+  const { sendMessage, fetchMessages, deleteMessage, newMessage, messages } = useChat();
   const { currentUser } = useParse();
   const [content, setContent] = useState('');
   const [receiver, setReceiver] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState(null);
-  const [localMessages, setLocalMessages] = useState([]);
   const toast = useToast();
+  const messagesEndRef = useRef(null);
 
   const fetchReceiverDetails = useCallback(async (userId) => {
-    const query = new Parse.Query(Parse.User);
-    const user = await query.get(userId);
-    setReceiver(user.toJSON());
+    if (!userId) return;
+    try {
+      const query = new Parse.Query(Parse.User);
+      const user = await query.get(userId);
+      setReceiver(user.toJSON());
+    } catch (error) {
+      console.error('Error fetching receiver details:', error);
+    }
   }, []);
 
-  useEffect(() => {
-    const loadMessages = async () => {
-      const fetchedMessages = await fetchMessages(receiverId);
-      setLocalMessages(fetchedMessages);
-    };
-
-    if (receiverId) {
-      loadMessages();
-      fetchReceiverDetails(receiverId);
+  const loadMessages = useCallback(async () => {
+    if (!receiverId || !currentUser) return;
+    try {
+      await fetchMessages(receiverId);
+    } catch (error) {
+      console.error("Error loading messages:", error);
     }
-  }, [receiverId, fetchMessages, fetchReceiverDetails]);
+  }, [receiverId, currentUser, fetchMessages]);
 
   useEffect(() => {
-    if (newMessage && !localMessages.some((msg) => msg.objectId === newMessage.objectId)) {
-      setLocalMessages((prevMessages) => [newMessage, ...prevMessages]);
+    if (receiverId) {
+      fetchReceiverDetails(receiverId);
+      loadMessages();
+    }
+  }, [receiverId, fetchReceiverDetails, loadMessages]);
+
+  useEffect(() => {
+    if (newMessage && newMessage.receiver.objectId === receiverId && !messages.some((msg) => msg.objectId === newMessage.objectId)) {
       toast({
         title: "New Message.",
         description: `You have received a new message from ${newMessage.sender.username}.`,
@@ -53,7 +55,15 @@ const Chat = ({ receiverId }) => {
         isClosable: true,
       });
     }
-  }, [newMessage, toast, localMessages]);
+  }, [newMessage, toast, messages, receiverId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -62,8 +72,7 @@ const Chat = ({ receiverId }) => {
     await sendMessage(receiverId, content);
     setContent('');
     setIsSending(false);
-    const fetchedMessages = await fetchMessages(receiverId);
-    setLocalMessages(fetchedMessages);
+    loadMessages();
   };
 
   const handleDeleteMessage = async (messageId) => {
@@ -71,8 +80,7 @@ const Chat = ({ receiverId }) => {
       setDeletingMessageId(messageId);
       setTimeout(async () => {
         await deleteMessage(messageId);
-        const fetchedMessages = await fetchMessages(receiverId);
-        setLocalMessages(fetchedMessages);
+        loadMessages();
         toast({
           title: "Message Deleted.",
           description: "Your message has been deleted.",
@@ -81,7 +89,7 @@ const Chat = ({ receiverId }) => {
           isClosable: true,
         });
         setDeletingMessageId(null);
-      }, 500); // Match the duration of the animation
+      }, 500);
     } catch (error) {
       console.error('Error while deleting message:', error);
       toast({
@@ -117,7 +125,7 @@ const Chat = ({ receiverId }) => {
       )}
       <VStack spacing={4} align="stretch">
         <Box border="1px" borderColor="white" borderRadius="md" p={4} maxHeight="400px" overflowY="auto" bg="#121212" shadow="md">
-          {localMessages.map((message) => (
+          {messages.map((message) => (
             <MotionBox
               key={message.objectId}
               initial="hidden"
@@ -149,6 +157,7 @@ const Chat = ({ receiverId }) => {
               </Flex>
             </MotionBox>
           ))}
+          <div ref={messagesEndRef} />
         </Box>
         <form onSubmit={handleSendMessage}>
           <Flex>

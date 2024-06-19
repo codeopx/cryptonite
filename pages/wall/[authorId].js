@@ -23,21 +23,12 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { useParse } from '@/context/parseContext';
+import { useChat } from '@/context/chatContext'; // Import useChat hook
 import LoadingScene from '@/components/LoadingScene';
 import Post from '@/components/posts';
 import Header from '@/components/header';
 import moment from 'moment';
-
-
-import Parse from '@/parseConfig';
-
-
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
-
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
-
+import NextLink from 'next/link';
 
 const getTimeDifference = (date) => {
   const now = moment();
@@ -168,6 +159,7 @@ const AuthorPosts = () => {
   const [userRank, setUserRank] = useState(null);
   const [loading, setLoading] = useState(true);
   const { Parse, currentUser, addFollower } = useParse();
+  const { sendMessage } = useChat(); // Use sendMessage from useChat hook
   const toast = useToast();
   const router = useRouter();
   const { authorId } = router.query;
@@ -286,8 +278,7 @@ const AuthorPosts = () => {
     }
 
     try {
-      // Implement your sendMessage logic here
-      console.log("Message sent to author:", authorId, "with content:", messageContent);
+      await sendMessage(authorId, messageContent); // Use sendMessage function
       setMessageContent('');
       onClose();
       toast({
@@ -340,12 +331,16 @@ const AuthorPosts = () => {
             <Text color="white">Total Views: {userRank ? formatCount(userRank.totalViews) : 0}</Text>
             <Text color="white">{postCount} Posts</Text>
             <Text color="white">{authorDetails?.bio}</Text>
-            <Flex>
-             
-              <Link href={`/chat?receiverId=${authorId}`}>
-                <Button colorScheme="purple">Message</Button>
-              </Link>
-            </Flex>
+            {currentUser && currentUser.id !== authorDetails?.id && (
+              <Flex>
+                
+                {authorDetails && (
+                  <NextLink href={`/chat?receiverId=${authorDetails.id}`} passHref>
+                    <Button colorScheme="purple">Message</Button>
+                  </NextLink>
+                )}
+              </Flex>
+            )}
           </Stack>
         </Flex>
         <Heading as="h3" size="md" mb={4} color="white">Author's Posts</Heading>
@@ -379,4 +374,3 @@ const AuthorPosts = () => {
 };
 
 export default AuthorPosts;
-

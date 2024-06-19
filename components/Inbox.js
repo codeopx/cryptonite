@@ -4,36 +4,24 @@ import { FiMessageSquare } from "react-icons/fi";
 import { useRouter } from "next/router";
 import { useChat } from "@/context/chatContext";
 import { useParse } from "@/context/parseContext";
-import Parse from '../parseConfig';
-
-
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
-
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
-
 
 const Inbox = () => {
   const { currentUser } = useParse();
-  const { fetchMessages, newMessage } = useChat();
-  const [messages, setMessages] = useState([]);
+  const { fetchReceivedMessages, newMessage, messages } = useChat();
   const [loading, setLoading] = useState(true);
   const toast = useToast();
   const router = useRouter();
 
   const loadMessages = useCallback(async () => {
-    if (!currentUser) return;  // Ensure currentUser is defined
+    if (!currentUser) return;
     try {
-      const fetchedMessages = await fetchMessages(currentUser.id, true);
-      const sortedMessages = fetchedMessages.sort((a, b) => new Date(b.sentAt.iso) - new Date(a.sentAt.iso));
-      setMessages(sortedMessages);
+      await fetchReceivedMessages();
     } catch (error) {
       console.error("Error loading messages:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentUser, fetchMessages]);
+  }, [currentUser, fetchReceivedMessages]);
 
   useEffect(() => {
     if (currentUser) {
@@ -43,7 +31,6 @@ const Inbox = () => {
 
   useEffect(() => {
     if (newMessage && !messages.some((msg) => msg.objectId === newMessage.objectId)) {
-      setMessages((prevMessages) => [newMessage, ...prevMessages]);
       toast({
         title: "New Message.",
         description: `You have received a new message from ${newMessage.sender.username}.`,

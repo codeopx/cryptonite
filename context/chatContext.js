@@ -27,30 +27,52 @@ export const ChatProvider = ({ children }) => {
     message.set('sentAt', new Date());
 
     try {
-      await message.save();
-      await fetchMessages(receiverId); // Fetch updated messages after sending a new one
+      const savedMessage = await message.save();
+      setNewMessage(savedMessage.toJSON());
+      setMessages(prevMessages => [...prevMessages, savedMessage.toJSON()]);
     } catch (error) {
       console.error('Error while sending message:', error);
       throw error;
     }
   };
 
-  const fetchMessages = async (userId, receivedOnly = false) => {
-    const query = new Parse.Query('Message');
-    query.equalTo('receiver', currentUser);
-    if (!receivedOnly) {
-      query.equalTo('sender', currentUser);
-      query.equalTo('receiver', {
-        __type: 'Pointer',
-        className: '_User',
-        objectId: userId
-      });
-    }
-    query.ascending('sentAt');
+  const fetchMessages = async (userId) => {
+    if (!currentUser) return [];
+
+    const sentMessagesQuery = new Parse.Query('Message');
+    sentMessagesQuery.equalTo('sender', currentUser);
+    sentMessagesQuery.equalTo('receiver', { __type: 'Pointer', className: '_User', objectId: userId });
+
+    const receivedMessagesQuery = new Parse.Query('Message');
+    receivedMessagesQuery.equalTo('sender', { __type: 'Pointer', className: '_User', objectId: userId });
+    receivedMessagesQuery.equalTo('receiver', currentUser);
+
+    const mainQuery = Parse.Query.or(sentMessagesQuery, receivedMessagesQuery);
+    mainQuery.ascending('sentAt'); // Sort messages by `sentAt` in ascending order
+
     try {
-      const results = await query.find();
-      setMessages(results.map(message => message.toJSON()));
-      return results.map(message => message.toJSON());
+      const results = await mainQuery.find();
+      const fetchedMessages = results.map(message => message.toJSON());
+      setMessages(fetchedMessages);
+      return fetchedMessages;
+    } catch (error) {
+      console.error('Error while fetching messages:', error);
+      throw error;
+    }
+  };
+
+  const fetchReceivedMessages = async () => {
+    if (!currentUser) return [];
+
+    const receivedMessagesQuery = new Parse.Query('Message');
+    receivedMessagesQuery.equalTo('receiver', currentUser);
+    receivedMessagesQuery.descending('sentAt'); // Sort messages by `sentAt` in descending order
+
+    try {
+      const results = await receivedMessagesQuery.find();
+      const fetchedMessages = results.map(message => message.toJSON());
+      setMessages(fetchedMessages);
+      return fetchedMessages;
     } catch (error) {
       console.error('Error while fetching messages:', error);
       throw error;
@@ -86,7 +108,7 @@ export const ChatProvider = ({ children }) => {
           const latestMessage = results[0].toJSON();
           if (!messages.some(msg => msg.objectId === latestMessage.objectId)) {
             setNewMessage(latestMessage);
-            setMessages(prevMessages => [latestMessage, ...prevMessages]);
+            setMessages(prevMessages => [...prevMessages, latestMessage]);
           }
         }
       } catch (error) {
@@ -100,7 +122,7 @@ export const ChatProvider = ({ children }) => {
   }, [currentUser, messages]);
 
   return (
-    <ChatContext.Provider value={{ messages, sendMessage, fetchMessages, deleteMessage, newMessage }}>
+    <ChatContext.Provider value={{ messages, sendMessage, fetchMessages, fetchReceivedMessages, deleteMessage, newMessage }}>
       {children}
     </ChatContext.Provider>
   );
