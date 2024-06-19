@@ -48,7 +48,18 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+
+
 const App = () => {
+
+   
+  useEffect(() => {
+    if (!Parse.applicationId) {
+      Parse.initialize(process.env.NEXT_PUBLIC_PARSE_APP_ID, process.env.NEXT_PUBLIC_PARSE_JS_KEY);
+      Parse.serverURL = process.env.NEXT_PUBLIC_PARSE_SERVER_URL;
+    }
+  }, [Parse]);
+
   const { Parse, currentUser, addFollower } = useParse();
   const [posts, setPosts] = useState([]);
   const [authorDetails, setAuthorDetails] = useState(null);
@@ -63,12 +74,6 @@ const App = () => {
   const onClose = () => setIsOpen(false);
   const onOpen = () => setIsOpen(true);
 
-  useEffect(() => {
-    if (!Parse.applicationId) {
-      Parse.initialize(process.env.NEXT_PUBLIC_PARSE_APP_ID, process.env.NEXT_PUBLIC_PARSE_JS_KEY);
-      Parse.serverURL = process.env.NEXT_PUBLIC_PARSE_SERVER_URL;
-    }
-  }, [Parse]);
 
   const fetchPosts = useCallback(async () => {
     const Post = Parse.Object.extend('Post');
