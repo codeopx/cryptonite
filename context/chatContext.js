@@ -48,7 +48,7 @@ export const ChatProvider = ({ children }) => {
     receivedMessagesQuery.equalTo('receiver', currentUser);
 
     const mainQuery = Parse.Query.or(sentMessagesQuery, receivedMessagesQuery);
-    mainQuery.ascending('sentAt'); // Sort messages by `sentAt` in ascending order
+    mainQuery.ascending('sentAt');  // Sort messages by `sentAt` in ascending order
 
     try {
       const results = await mainQuery.find();
@@ -66,7 +66,7 @@ export const ChatProvider = ({ children }) => {
 
     const receivedMessagesQuery = new Parse.Query('Message');
     receivedMessagesQuery.equalTo('receiver', currentUser);
-    receivedMessagesQuery.descending('sentAt'); // Sort messages by `sentAt` in descending order
+    receivedMessagesQuery.descending('sentAt');  // Sort messages by `sentAt` in descending order
 
     try {
       const results = await receivedMessagesQuery.find();
@@ -116,7 +116,7 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
-    const interval = setInterval(checkForNewMessages, 5000); // Check every 5 seconds
+    const interval = setInterval(checkForNewMessages, 5000);  // Check every 5 seconds
 
     return () => clearInterval(interval);
   }, [currentUser, messages]);

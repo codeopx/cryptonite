@@ -51,7 +51,7 @@ export const ParseProvider = ({ children }) => {
       await refreshSession(); 
 
       // Call Cloud Code function to follow the author
-      await Parse.Cloud.run("followAuthor", { currentUser, authorId });
+      await Parse.Cloud.run("followAuthor", { userID: currentUser.id, authorID: authorId });
 
       // After following, update the current user's state
       setCurrentUser(await Parse.User.currentAsync()); 
