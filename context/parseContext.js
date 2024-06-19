@@ -45,24 +45,8 @@ export const ParseProvider = ({ children }) => {
     }
   };
 
-  const addFollower = async (authorId) => {
-    if (!currentUser) throw new Error("User not authenticated");
-    try {
-      await refreshSession(); 
-
-      // Call Cloud Code function to follow the author
-      await Parse.Cloud.run("followAuthor", { userID: currentUser.id, authorID: authorId });
-
-      // After following, update the current user's state
-      setCurrentUser(await Parse.User.currentAsync()); 
-    } catch (error) {
-      console.error('Error while following author:', error);
-      throw error;
-    }
-  };
-
   return (
-    <ParseContext.Provider value={{ Parse, currentUser, addFollower }}>
+    <ParseContext.Provider value={{ Parse, currentUser, refreshSession }}>
       {children}
     </ParseContext.Provider>
   );

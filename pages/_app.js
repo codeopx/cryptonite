@@ -48,11 +48,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-
-
 const App = () => {
-
-   
   useEffect(() => {
     if (!Parse.applicationId) {
       Parse.initialize(process.env.NEXT_PUBLIC_PARSE_APP_ID, process.env.NEXT_PUBLIC_PARSE_JS_KEY);
@@ -60,7 +56,7 @@ const App = () => {
     }
   }, [Parse]);
 
-  const { Parse, currentUser, addFollower } = useParse();
+  const { Parse, currentUser } = useParse();
   const [posts, setPosts] = useState([]);
   const [authorDetails, setAuthorDetails] = useState(null);
   const [postCount, setPostCount] = useState(0);
@@ -73,7 +69,6 @@ const App = () => {
 
   const onClose = () => setIsOpen(false);
   const onOpen = () => setIsOpen(true);
-
 
   const fetchPosts = useCallback(async () => {
     const Post = Parse.Object.extend('Post');
@@ -91,13 +86,12 @@ const App = () => {
     const query = new Parse.Query(Parse.User);
     try {
       const author = await query.get(authorId);
-      const followers = author.get('followers') || [];
       return {
         id: author.id,
         username: author.get('username'),
         avatar: author.get('avatarUrl'),
         bio: author.get('bio'),
-        followersCount: author.get('followersCount') || followers.length,
+        followersCount: author.get('followersCount') || 0,
         following: author.get('following') || [],
       };
     } catch (error) {
@@ -130,42 +124,6 @@ const App = () => {
       fetchPosts();
     } catch (error) {
       console.error('Error while deleting post:', error);
-    }
-  };
-
-  const handleFollow = async () => {
-    if (!currentUser) {
-      toast({
-        title: "Authentication Error.",
-        description: "You need to log in to follow the author.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      await addFollower(userId);
-      const updatedAuthorDetails = await fetchAuthorDetails(userId);
-      setAuthorDetails(updatedAuthorDetails);
-
-      toast({
-        title: "Followed.",
-        description: "You have followed the author.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error('Error while following author:', error);
-      toast({
-        title: "Error.",
-        description: `There was an error following the author: ${error.message}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
     }
   };
 
@@ -232,9 +190,6 @@ const App = () => {
             <Text color="white">{postCount} Posts</Text>
             <Text color="white">{authorDetails?.bio}</Text>
             <Flex>
-              {currentUser && currentUser.id !== userId && (
-                <Button colorScheme="purple" onClick={handleFollow} mr={2}>Follow</Button>
-              )}
               <Link href={`/chat?receiverId=${userId}`}>
                 <Button colorScheme="purple">Message</Button>
               </Link>
