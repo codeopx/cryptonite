@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, SimpleGrid, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useToast } from "@chakra-ui/react";
+import {
+  Box, Stack, Button, ChakraProvider, Avatar, Text, Heading, Flex, SimpleGrid,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useToast
+} from "@chakra-ui/react";
 import Post from '@/components/posts';
 import CreatePost from '@/components/createPost';
 import { ParseProvider, useParse } from '@/context/parseContext';
@@ -61,7 +64,6 @@ const App = () => {
   const onOpen = () => setIsOpen(true);
 
   useEffect(() => {
-    // Initialize Parse only once
     if (!Parse.applicationId) {
       Parse.initialize(process.env.NEXT_PUBLIC_PARSE_APP_ID, process.env.NEXT_PUBLIC_PARSE_JS_KEY);
       Parse.serverURL = process.env.NEXT_PUBLIC_PARSE_SERVER_URL;
@@ -72,8 +74,12 @@ const App = () => {
     const Post = Parse.Object.extend('Post');
     const query = new Parse.Query(Post);
     query.include('author');
-    const results = await query.find();
-    setPosts(results.map(post => post.toJSON()));
+    try {
+      const results = await query.find();
+      setPosts(results.map(post => post.toJSON()));
+    } catch (error) {
+      console.error('Error while fetching posts:', error);
+    }
   }, [Parse]);
 
   const fetchAuthorDetails = useCallback(async (authorId) => {
@@ -113,9 +119,13 @@ const App = () => {
   const handleDelete = async (postId) => {
     const Post = Parse.Object.extend('Post');
     const query = new Parse.Query(Post);
-    const post = await query.get(postId);
-    await post.destroy();
-    fetchPosts();
+    try {
+      const post = await query.get(postId);
+      await post.destroy();
+      fetchPosts();
+    } catch (error) {
+      console.error('Error while deleting post:', error);
+    }
   };
 
   const handleFollow = async () => {
@@ -132,7 +142,6 @@ const App = () => {
 
     try {
       await addFollower(userId);
-
       const updatedAuthorDetails = await fetchAuthorDetails(userId);
       setAuthorDetails(updatedAuthorDetails);
 
