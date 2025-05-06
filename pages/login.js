@@ -27,11 +27,11 @@ import { useParse } from "@/context/parseContext";
 import Parse from '../parseConfig'
 
 
-const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
-const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
+// const PARSE_APPLICATION_ID = process.env.NEXT_PUBLIC_PARSE_APPLICATION_ID;
+// const PARSE_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_PARSE_JAVASCRIPT_KEY;
 
-Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-Parse.serverURL = "https://parseapi.back4app.com/";
+// Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
+// Parse.serverURL = "https://parseapi.back4app.com/";
 
 
 export default function Login() {

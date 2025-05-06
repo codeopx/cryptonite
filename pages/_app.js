@@ -226,7 +226,7 @@ const App = () => {
   );
 };
 
-const MyApp = ({ Component, pageProps }) => {
+const MyApp = ({ Component, pageProps, Parse }) => {
   return (
     <ChakraProvider>
       <ParseProvider>

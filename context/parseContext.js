@@ -6,7 +6,7 @@ const ParseContext = createContext();
 const definePostSchema = async () => {
   try {
     const response = await Parse.Cloud.run("definePostSchema");
-    console.log(response);
+    console.log('Schema defined:', response);
   } catch (error) {
     console.error('Error while defining schema:', error.message);
   }
@@ -16,21 +16,17 @@ export const ParseProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const getCurrentUser = async () => {
+    const initialize = async () => {
       try {
+        await definePostSchema();
         const user = await Parse.User.currentAsync();
         setCurrentUser(user);
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        console.error('Initialization error:', error);
       }
     };
 
-    const initializeSchema = async () => {
-      await definePostSchema();
-    };
-
-    getCurrentUser();
-    initializeSchema();
+    initialize();
   }, []);
 
   const refreshSession = async () => {
@@ -45,8 +41,20 @@ export const ParseProvider = ({ children }) => {
     }
   };
 
+  const addFollower = async (authorId) => {
+    if (!currentUser) throw new Error("User not authenticated");
+    try {
+      await refreshSession(); 
+      await Parse.Cloud.run("followAuthor", { userID: currentUser.id, authorID: authorId });
+      setCurrentUser(await Parse.User.currentAsync()); 
+    } catch (error) {
+      console.error('Error while following author:', error);
+      throw error;
+    }
+  };
+
   return (
-    <ParseContext.Provider value={{ Parse, currentUser, refreshSession }}>
+    <ParseContext.Provider value={{ Parse, currentUser, addFollower }}>
       {children}
     </ParseContext.Provider>
   );
